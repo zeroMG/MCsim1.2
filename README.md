@@ -1,4 +1,5 @@
 # MCsim
+<<<<<<< HEAD
 A Simulation Framework for DRAM Controllers
 
 ## Simulator Architecture
@@ -25,3 +26,6 @@ BankOpenRowTable keeps checking the current and pending row that in or will be f
 
 
 # Available Controllers
+=======
+MC Modified Simulator
+>>>>>>> 57aa63ac953d153994380564092455cf6b99003a
