@@ -123,6 +123,15 @@ int main( int argc, char **argv )
 	for(int req = 0; req < requestors; req++)
 	{
 		mcSim->RegisterRequestor(req,1);
+		// Set up connectino between Requestor and Memory (Clock Cycles)
+		switch(req)
+		{
+			default:
+				/// By default, set the device as 1333G with clock speed of 1.5ns
+				requestorTable[req]->setMemClock(1.5);
+				/// Critical requestor
+				break;
+		}
 	}
 
 	std::cout<<"\nSimulation Starts ..."<<std::endl;

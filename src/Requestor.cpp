@@ -32,6 +32,8 @@ Requestor::Requestor(std::string memoryTrace)
 	pendingAccess = NULL;
 	clock = 0;
 	accessBlock = false;
+	requestCycleCountdown = 0;
+	memClock = 1;  // 1ns clock speed for this simple requestor memory traces
 }
 
 Requestor::~Requestor()
@@ -46,11 +48,24 @@ Requestor::~Requestor()
 	delete pendingAccess;
 }
 
+void Requestor::setMemClock(float mem_clock_ns)
+{
+	if (mem_clock_ns <= 1)
+	{
+		std::cout<<"Invalid memory device clock speed"<<std::endl;
+	}
+	else
+	{
+		memClock = mem_clock_ns;
+	}
+}
+
 bool Requestor::SimulationDone()
 {
 	bool simDone = false;
 	if ( memTrace.eof() )
 	{
+		// std::cout << totalCompTime << std::endl;
 		simDone = true;
 	}
 	return simDone;
@@ -58,13 +73,13 @@ bool Requestor::SimulationDone()
 
 void Requestor::Tick(void)
 {
-	if (!accessBlock)
+	if (!accessBlock && pendingAccess == NULL)
 	{
 		if ( memTrace.is_open() )
 		{
 			std::string request;
 			getline(memTrace, request);
-			//std::cout<<request<<std::endl;
+			// std::cout<<request<<std::endl;
 			if ( !request.empty() )
 			{
 				pendingAccess = new Access();
@@ -86,6 +101,12 @@ void Requestor::Tick(void)
 				{
 					pendingAccess->access = false;
 				}
+				request = request.substr(index+1, request.size()-index);
+				// std::cout << request << std::endl;
+				requestCycleCountdown = std::strtoul(request.c_str(), nullptr, 0);
+				requestCycleCountdown = requestCycleCountdown / memClock + 1;
+				// std::cout << requestCycleCountdown << std::endl;
+				totalCompTime+=requestCycleCountdown;
 			}
 		}
 	}
@@ -96,14 +117,22 @@ bool Requestor::GetRequest(int &address, bool &access, int &size)
 {
 	if (pendingAccess != NULL && !accessBlock)
 	{
-		address = pendingAccess->address;
-		access = pendingAccess->access;
-		size = 64;//pendingAccess->size;
-//		data = pendingAccess->data;
-//		pendingQueue.push_back(pendingAccess);
-//		pendingAccess = NULL;
-		accessBlock = true;
-		return true;
+		if (requestCycleCountdown > 0)
+		{
+			requestCycleCountdown--;
+		}
+		if (requestCycleCountdown == 0)
+		{
+			address = pendingAccess->address;
+			access = pendingAccess->access;
+			size = 64;//pendingAccess->size;
+	//		data = pendingAccess->data;
+	//		pendingQueue.push_back(pendingAccess);
+	//		pendingAccess = NULL;
+			accessBlock = true;
+			return true;
+		}
+		return false;
 	}
 	else
 	{

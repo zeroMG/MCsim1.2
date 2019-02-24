@@ -17,6 +17,7 @@ class Requestor
 public:
 	Requestor(std::string memoryTrace);
 	virtual ~Requestor();
+	void setMemClock(float mem_clock_ns);
 	bool GetRequest(int &address, bool &access, int &size);
 	void ReturnRequest(int address, bool access);
 	bool SimulationDone();
@@ -34,6 +35,10 @@ private:
 	Access* pendingAccess;
 	std::vector<Access*> pendingQueue;
 	bool accessBlock;
+	unsigned requestCycleCountdown;
+	float memClock;
+	unsigned totalCompTime;  // cycles between requests
+	
 };
 
 #endif /* REQUESTOR_H_ */
